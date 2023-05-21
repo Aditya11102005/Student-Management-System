@@ -33,60 +33,29 @@ def setup():
 def viewStudents():
     db = mydb.connect(host="localhost", user="root", password="",database="SMS")
     executor = db.cursor()
-    print("|"+"-"*67+"|")
-    print("|"+" "*20+"1. View one student detail"+" "*21+"|")
-    print("|"+" "*20+"2. View all student details"+" "*20+"|")
-    print("|"+"_"*67+"|")
-    v = int(input("Enter you option: "))
-    if v == 1:
-        r = int(input("Enter the roll no of that student: "))
-        timer.loading()
-        try:
-            executor.execute("SELECT * FROM studentDetails WHERE RollNo=%s",(r,))
-            result = executor.fetchall()
-            if len(result) == 0:
-                print("Invalid RollNo")
-            else:
-                for row in result:
-                    rno = row[0]
-                    Fname = row[1]
-                    Lname = row[2]
-                    dob = row[3]
-                    Class = row[4]
-                    Gender = row[5]
-                print("|"+"-"*67+"|")
+    try:
+        executor.execute("SELECT * FROM studentDetails")
+        result = executor.fetchall()
+        if len(result) == 0:
+            print("Invalid RollNo")
+        else:
+            timer.loading()
+            print("|"+"-"*67+"|")
+            for row in result:
+                rno = row[0]
+                Fname = row[1]
+                Lname = row[2]
+                dob = row[3]
+                Class = row[4]
+                Gender = row[5]
                 print("|"+"Student Detail:"+" "*52+"|")
                 print("|"+f"Roll No: {rno}\t\t\tClass: {Class}"+" "*27+"|")
                 print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
                 print("|"+f"DOB: {dob}\t\tGender: {Gender}"+" "*24+"|")
+                print("|"+"-"*67+"|")
             print("|"+"_"*67+"|")
-        except Exception as e:
-            print(f"Error occurred while fetching student detail!\nError: {e}")
-
-    elif v == 2:
-            try:
-                executor.execute("SELECT * FROM studentDetails")
-                result = executor.fetchall()
-                if len(result) == 0:
-                    print("Invalid RollNo")
-                else:
-                    timer.loading()
-                    print("|"+"-"*67+"|")
-                    for row in result:
-                        rno = row[0]
-                        Fname = row[1]
-                        Lname = row[2]
-                        dob = row[3]
-                        Class = row[4]
-                        Gender = row[5]
-                        print("|"+"Student Detail:"+" "*52+"|")
-                        print("|"+f"Roll No: {rno}\t\t\tClass: {Class}"+" "*27+"|")
-                        print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
-                        print("|"+f"DOB: {dob}\t\tGender: {Gender}"+" "*24+"|")
-                        print("|"+"-"*67+"|")
-                    print("|"+"_"*67+"|")
-            except Exception as e:
-                print(f"Error occurred while fetching student detail!\nError: {e}")
+    except Exception as e:
+        print(f"Error occurred while fetching student detail!\nError: {e}")
     db.close()
 
 
@@ -196,71 +165,31 @@ def deleteStudent():
 def viewMarks():
     db = mydb.connect(host="localhost", user="root", password="",database="SMS")
     executor = db.cursor()
-    print("|"+"-"*67+"|")
-    print("|"+" "*20+"1. To view one student marks"+" "*19+"|")
-    print("|"+" "*20+"2. View all student marks"+" "*22+"|")
-    print("|"+"_"*67+"|")
-    v = int(input("Enter you option: "))
-    if v == 1:
-        r = int(input("Enter the roll no of that student: "))
+    try:
         timer.loading()
-        executor.execute("SELECT * FROM StudentDetails where RollNo=%s",(r,))
+        executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Mathssr.English,sr.CS,sr.OverallPercentage,sr.Month FROM studentDetails sd,studentResults sr WHEREsd.RollNo = sr.RollNo")
         result = executor.fetchall()
-        if len(result) == 0:
-            print("Student does not exist, first add the student details.")
-        else:
-            try:
-                executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Maths,sr.English,sr.CS,sr.OverallPercentage,sr.Month from studentDetails sd,studentResults sr WHERE sd.RollNo = sr.RollNo AND sd.RollNo=%s",(r,))
-                result = executor.fetchall()
-                for row in result:
-                    rno = row[0]
-                    Fname = row[1]
-                    Lname = row[2]
-                    Physics = row[3]
-                    Chemistry = row[4]
-                    Maths = row[5]
-                    English = row[6]
-                    Cs = row[7]
-                    Percentage = row[8]
-                    Months = row[9]
-                print("|"+"-"*67+"|")
-                print("|"+"Student Score:"+" "*53+"|")
-                print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
-                print("|"+f"Roll No: {rno}\t\t\tCS: {Cs}"+" "*30+"|")
-                print("|"+f"Physics: {Physics}\t\t\tChemistry: {Chemistry}"+" "*23+"|")
-                print("|"+f"Maths: {Maths}\t\t\tEnglish: {English}"+" "*25+"|")
-                print("|"+f"Percentage: {Percentage}\t\tMonth: {Months}"+" "*20+"|")
-                print("|"+"_"*67+"|")
-            except Exception as e:
-                print(f"Error occurred while fetching student detail!\nError: {e}")
-
-    elif v == 2:
-        try:
-            timer.loading()
-            executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Maths,sr.English,sr.CS,sr.OverallPercentage,sr.Month FROM studentDetails sd,studentResults sr WHERE sd.RollNo = sr.RollNo")
-            result = executor.fetchall()
-            print("|"+"-"*67+"|")
-            for row in result:
-                rno = row[0]
-                Fname = row[1]
-                Lname = row[2]
-                Physics = row[3]
-                Chemistry = row[4]
-                Maths = row[5]
-                English = row[6]
-                Cs = row[7]
-                Percentage = row[8]
-                Months = row[9]
-                print("|"+"Student Score:"+" "*53+"|")
-                print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
-                print("|"+f"Roll No: {rno}\t\t\tCS: {Cs}"+" "*30+"|")
-                print("|"+f"Physics: {Physics}\t\t\tChemistry: {Chemistry}"+" "*23+"|")
-                print("|"+f"Maths: {Maths}\t\t\tEnglish: {English}"+" "*25+"|")
-                print("|"+f"Percentage: {Percentage}\t\tMonth: {Months}"+" "*20+"|")
-                print("-"*69)
-            print("|"+"_"*67+"|")
-        except Exception as e:
-            print(f"Error occurred while fetching student detail!\nError: {e}")
+        for row in result:
+            rno = row[0]
+            Fname = row[1]
+            Lname = row[2]
+            Physics = row[3]
+            Chemistry = row[4]
+            Maths = row[5]
+            English = row[6]
+            Cs = row[7]
+            Percentage = row[8]
+            Months = row[9]
+            print("|"+"Student Score:"+" "*53+"|")
+            print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
+            print("|"+f"Roll No: {rno}\t\t\tCS: {Cs}"+" "*30+"|")
+            print("|"+f"Physics: {Physics}\t\t\tChemistry: {Chemistry}"+" "*23+"|")
+            print("|"+f"Maths: {Maths}\t\t\tEnglish: {English}"+" "*25+"|")
+            print("|"+f"Percentage: {Percentage}\t\tMonth: {Months}"+" "*20+"|")
+            print("-"*69)
+        print("|"+"_"*67+"|")
+    except Exception as e:
+        print(f"Error occurred while fetching student detail!\nError: {e}")
     db.close()
 
 
