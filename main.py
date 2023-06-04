@@ -4,12 +4,12 @@ from tqdm import tqdm as p
 
 
 class timer:
-    def executing():
-        for i in p(range(10),colour="White",desc="Executing",leave=False,dynamic_ncols=True):          
+    def executing(self):
+        for i in p(range(10), colour="white", desc="Executing", leave=False, dynamic_ncols=True):          
             t.sleep(0.25)
 
-    def loading():
-        for i in p(range(10),colour="White",desc="  Loading",leave=False,dynamic_ncols=True):          
+    def loading(self):
+        for i in p(range(10), colour="white", desc="  Loading", leave=False, dynamic_ncols=True):          
             t.sleep(0.25)
 
 
@@ -19,9 +19,9 @@ def setup():
     try:
         executor.execute("CREATE DATABASE IF NOT EXISTS SMS")
         executor.execute("USE SMS")
-        executor.execute("CREATE TABLE IF NOT EXISTS studentDetails(RollNo int(3) NOT NULL PRIMARY KEY AUTO_INCREMENT,FirstName varchar(14) NOT NULL,LastName varchar(14) NOT NULL,DOB date NOT NULL,Class int(3) NOT NULL,Gender varchar(6) NOT NULL)")
+        executor.execute("CREATE TABLE IF NOT EXISTS studentDetails(RollNo int(3) NOT NULL PRIMARY KEY AUTO_INCREMENT,FirstName varchar(14) NOT NULL,LastName varchar(14) NOT NULL,DOB date NOT NULL,Class int(3) NOT NULL,Gender varchar(6) NOT NULL, CHECK (Gender = 'Male or Gender = 'Female'))")
         executor.execute("INSERT INTO studentDetails(FirstName,LastName,DOB,Class,Gender) VALUES('Aditya','Bijjaragi','2005-10-11',12,'Male')")
-        executor.execute("CREATE TABLE IF NOT EXISTS studentResults(RollNo int(3),Physics int(3) NOT NULL,Chemistry int(3) NOT NULL,Maths int(3) NOT NULL,English int(3) NOT NULL,CS int(3) NOT NULL,OverallPercentage decimal(4,2) NOT NULL,Month varchar(10) NOT NULL,FOREIGN KEY (RollNo) REFERENCES studentDetails(RollNo) ON DELETE CASCADE)")
+        executor.execute("CREATE TABLE IF NOT EXISTS studentResults(RollNo int(3),Physics int(3) NOT NULL,Chemistry int(3) NOT NULL,Maths int(3) NOT NULL,English int(3) NOT NULL,CS int(3) NOT NULL,OverallPercentage decimal(4,2) NOT NULL,Month varchar(10) NOT NULL,FOREIGN KEY (RollNo) REFERENCES studentDetails(RollNo) ON DELETE CASCADE ON UPDATE CASCADE)")
         executor.execute("INSERT INTO studentResults(RollNo,Physics,Chemistry,Maths,English,CS,OverallPercentage,Month) VALUES(1,19,16,20,21,25,80.80,'April')")
         db.commit()
     except Exception as e:
@@ -167,7 +167,7 @@ def viewMarks():
     executor = db.cursor()
     try:
         timer.loading()
-        executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Mathssr.English,sr.CS,sr.OverallPercentage,sr.Month FROM studentDetails sd,studentResults sr WHEREsd.RollNo = sr.RollNo")
+        executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Maths,sr.English,sr.CS,sr.OverallPercentage,sr.Month FROM studentDetails sd,studentResults sr WHEREsd.RollNo = sr.RollNo")
         result = executor.fetchall()
         for row in result:
             rno = row[0]
