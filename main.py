@@ -1,45 +1,40 @@
 import mysql.connector as mydb
-import time as t
-from tqdm import tqdm as p
-
-
-class timer:
-    def executing(self):
-        for i in p(range(10), colour="white", desc="Executing", leave=False, dynamic_ncols=True):          
-            t.sleep(0.25)
-
-    def loading(self):
-        for i in p(range(10), colour="white", desc="  Loading", leave=False, dynamic_ncols=True):          
-            t.sleep(0.25)
+# import os
 
 
 def setup():
-    db = mydb.connect(host="localhost", user="root", password="")
+    db = mydb.connect(host="localhost", user="root", password="aditya")
     executor = db.cursor()
+    db.start_transaction()
+
     try:
         executor.execute("CREATE DATABASE IF NOT EXISTS SMS")
         executor.execute("USE SMS")
-        executor.execute("CREATE TABLE IF NOT EXISTS studentDetails(RollNo int(3) NOT NULL PRIMARY KEY AUTO_INCREMENT,FirstName varchar(14) NOT NULL,LastName varchar(14) NOT NULL,DOB date NOT NULL,Class int(3) NOT NULL,Gender varchar(6) NOT NULL, CHECK (Gender = 'Male or Gender = 'Female'))")
-        executor.execute("INSERT INTO studentDetails(FirstName,LastName,DOB,Class,Gender) VALUES('Aditya','Bijjaragi','2005-10-11',12,'Male')")
-        executor.execute("CREATE TABLE IF NOT EXISTS studentResults(RollNo int(3),Physics int(3) NOT NULL,Chemistry int(3) NOT NULL,Maths int(3) NOT NULL,English int(3) NOT NULL,CS int(3) NOT NULL,OverallPercentage decimal(4,2) NOT NULL,Month varchar(10) NOT NULL,FOREIGN KEY (RollNo) REFERENCES studentDetails(RollNo) ON DELETE CASCADE ON UPDATE CASCADE)")
-        executor.execute("INSERT INTO studentResults(RollNo,Physics,Chemistry,Maths,English,CS,OverallPercentage,Month) VALUES(1,19,16,20,21,25,80.80,'April')")
+        executor.execute("CREATE TABLE IF NOT EXISTS sDetails(RollNo int(3) PRIMARY KEY AUTO_INCREMENT,FirstName varchar(14) NOT NULL UNIQUE,LastName varchar(14) NOT NULL,DOB date NOT NULL,Class int(3) NOT NULL,Gender varchar(6) NOT NULL, CHECK (Gender = 'Male' or Gender = 'Female'))")
+
+        executor.execute("CREATE TABLE IF NOT EXISTS sResults(RollNo int(3),Physics int(3) NOT NULL,Chemistry int(3) NOT NULL,Maths int(3) NOT NULL,English int(3) NOT NULL,CS int(3) NOT NULL,OverallPercentage decimal(4,2) NOT NULL,Month varchar(10) NOT NULL,FOREIGN KEY (RollNo) REFERENCES sDetails(RollNo) ON DELETE CASCADE ON UPDATE CASCADE)")
+
         db.commit()
+
     except Exception as e:
         db.rollback()
         print(f"Setup failed!\nError: {e}")
+
     db.close()
 
 
 def viewStudents():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
+    db.start_transaction()
     try:
-        executor.execute("SELECT * FROM studentDetails")
+        executor.execute("SELECT * FROM sDetails")
         result = executor.fetchall()
+
         if len(result) == 0:
             print("Invalid RollNo")
+
         else:
-            timer.loading()
             print("|"+"-"*67+"|")
             for row in result:
                 rno = row[0]
@@ -53,41 +48,51 @@ def viewStudents():
                 print("|"+f"First Name: {Fname}\t\tLast Name: {Lname}"+" "*16+"|")
                 print("|"+f"DOB: {dob}\t\tGender: {Gender}"+" "*24+"|")
                 print("|"+"-"*67+"|")
+
             print("|"+"_"*67+"|")
+
     except Exception as e:
         print(f"Error occurred while fetching student detail!\nError: {e}")
+
     db.close()
 
 
 def addStudents():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
+    db.start_transaction()
     print("|"+"-"*67+"|")
     Fname = input("|"+"Enter first name: ")
     Lname = input("|"+"Enter last name: ")
     dob = input("|"+"Format - YYYY-MM-DD\n"+"|"+"Enter date of birth: ")
     Class = int(input("|"+"Enter class: "))
     gender = input("|"+"Enter gender: ")
+
     print("|"+"_"*67+"|")
-    timer.executing()
+
     try:
-        executor.execute("INSERT INTO studentDetails(FirstName,LastName,DOB,Class,Gender) VALUES(%s,%s,%s,%s,%s)",(Fname,Lname,dob,Class,gender))
+        executor.execute("INSERT INTO sDetails(FirstName,LastName,DOB,Class,Gender) VALUES(%s,%s,%s,%s,%s)",(Fname,Lname,dob,Class,gender))
         db.commit()
         print("Successfully added")
+    
     except Exception as e:
         db.rollback()
         print(f"Failed to add student!\nError: {e}")
+    
     db.close()
 
 
 def updateStudent():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
+    db.start_transaction()
     r = int(input("Enter the roll no to be updated: "))
-    executor.execute("SELECT * FROM studentDetails WHERE RollNo=%s",(r,))
+    executor.execute("SELECT * FROM sDetails WHERE RollNo=%s",(r,))
     result = executor.fetchall()
+
     if len(result) == 0:
         print("Invalid RollNo")
+
     else:
         print("|"+"-"*67+"|")
         Fname = input("|"+"Enter new first name (press enter to skip): ")
@@ -96,14 +101,14 @@ def updateStudent():
         Class = input("|"+"Enter new class (press enter to skip): ")
         gender = input("|"+"Enter new gender (press enter to skip): ")
         print("|"+"_"*67+"|")
-        executor.execute("SELECT * FROM studentDetails WHERE RollNo=%s",(r,))
+        executor.execute("SELECT * FROM sDetails WHERE RollNo=%s",(r,))
         updating = executor.fetchone()
 
         if updating is None:
             print(f"No student found with Roll No {r}")
             return
 
-        updateq = f"UPDATE studentDetails SET "
+        updateq = f"UPDATE sDetails SET "
         updatel = []
         if Fname != "":
             updatel.append(f"firstName='{Fname}'")
@@ -112,36 +117,43 @@ def updateStudent():
         if dob != "":
             updatel.append(f"dob='{dob}'")
         if Class != "":
+
             try:
                 cLass = int(Class)
                 updatel.append(f"class={cLass}")
+
             except ValueError:
                 print("Invalid class value, skipping update")
+
         if gender != "":
             updatel.append(f"gender='{gender}'")
 
         updateq += ", ".join(updatel)
         updateq += f" WHERE RollNo={r}"
-
-        timer.executing()
+        
         try:
             executor.execute(updateq)
+
             if executor.rowcount > 0:
                 db.commit()
                 print(f"Successfully updated student details with Roll No {r}")
+                
             else:
                 print(f"No rows updated for student with Roll No {r}")
+
         except Exception as e:
             db.rollback()
             print(f"Failed to update student with Roll No {r}!\nError: {e}")
+
     db.close()
 
 
 def deleteStudent():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
-    r = int(input("NOTE:You can not delete student with rollno 1\nEnter the roll number: "))
-    executor.execute("SELECT * FROM studentDetails WHERE RollNo=%s",(r,))
+    db.start_transaction()
+    r = int(input("Enter the roll number: "))
+    executor.execute("SELECT * FROM sDetails WHERE RollNo=%s",(r,))
     deleting = executor.fetchone()
 
     if deleting is None:
@@ -149,26 +161,30 @@ def deleteStudent():
         return
     
     conform = input(f"Do you really want to delete the student data with roll number {r}?(y/n): ")
+
     if conform == "y":
-        timer.executing()
-        executor.execute("DELETE FROM studentDetails WHERE RollNo=%s",(r,))
+        executor.execute("DELETE FROM sDetails WHERE RollNo=%s",(r,))
         db.commit()
         print("Successfully deleted student")
+
     elif conform == "n":
         db.rollback()
         print("On your request we are not deleting the data")
+
     else:
         print("Failed to delete student")
+
     db.close()
 
 
 def viewMarks():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
+    db.start_transaction()
     try:
-        timer.loading()
-        executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Maths,sr.English,sr.CS,sr.OverallPercentage,sr.Month FROM studentDetails sd,studentResults sr WHEREsd.RollNo = sr.RollNo")
+        executor.execute("SELECT sd.RollNo,sd.FirstName,sd.LastName,sr.Physics,sr.Chemistry,sr.Maths,sr.English,sr.CS,sr.OverallPercentage,sr.Month FROM sDetails sd,sResults sr WHERE sd.RollNo = sr.RollNo")
         result = executor.fetchall()
+
         for row in result:
             rno = row[0]
             Fname = row[1]
@@ -187,21 +203,27 @@ def viewMarks():
             print("|"+f"Maths: {Maths}\t\t\tEnglish: {English}"+" "*25+"|")
             print("|"+f"Percentage: {Percentage}\t\tMonth: {Months}"+" "*20+"|")
             print("-"*69)
+
         print("|"+"_"*67+"|")
+
     except Exception as e:
         print(f"Error occurred while fetching student detail!\nError: {e}")
+
     db.close()
 
 
 def addMarks():
-    db = mydb.connect(host="localhost", user="root", password="",database="SMS")
+    db = mydb.connect(host="localhost", user="root", password="aditya",database="SMS")
     executor = db.cursor()
+    db.start_transaction()
     print("|"+"_"*67+"|")
     r = int(input("Enter the student rollno: "))
-    executor.execute("SELECT * FROM StudentDetails where RollNo=%s",(r,))
+    executor.execute("SELECT * FROM sDetails where RollNo=%s",(r,))
     result = executor.fetchall()
+
     if len(result) == 0:
         print("Student does not exist, first add the student details.")
+
     else:
         print("Enter marks as per subject")
         p = int(input("|"+"Physics: "))
@@ -213,14 +235,16 @@ def addMarks():
         print("|"+"_"*67+"|")
         per = ((p+c+m+e+cs)/125)*100
         percentage = round(per,2)
-        timer.executing()
+
         try:
-            executor.execute("INSERT INTO studentResults(RollNo,Physics,Chemistry,Maths,English,CS,OverallPercentage,Month) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",(r,p,c,m,e,cs,percentage,mt))
+            executor.execute("INSERT INTO sResults(RollNo,Physics,Chemistry,Maths,English,CS,OverallPercentage,Month) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)",(r,p,c,m,e,cs,percentage,mt))
             db.commit()
             print("Successfully added")
+
         except Exception as e:
             db.rollback()
-            print(f"Failed to add student!\nError: {e}")
+            print(f"Failed to add marks!\nError: {e}")
+
     db.close()
 
 
@@ -232,6 +256,7 @@ print("|"+" "*20,"Student Management System"+" "*20,"|")
 print("*"*69)
 x = ""
 while x == "":
+    # os.system('cls')
     print("|"+"-"*67+"|")
     print("|"+" "*20,"1. View student details"+" "*22,"|")
     print("|"+" "*20,"2. Add student details"+" "*23,"|")
